@@ -4,6 +4,14 @@ import ray
 import random
 import time
 
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("num_workers", help="Number of workers to use",
+                    type=int)
+args = parser.parse_args()
+
+print("args", args)
+
 @ray.remote
 def execute():
     env = gym.make("Pendulum-v0")
@@ -17,12 +25,12 @@ def execute():
         result[i, :] = obs
     return result
 
-ray.init(num_cpus=2)
+ray.init(num_cpus=args.num_workers)
 
 ray.get([execute.remote()])
 
 time.sleep(1.0)
 
 t1 = time.time()
-ray.get([execute.remote() for i in range(6)])
+ray.get([execute.remote() for i in range(3*args.num_workers)])
 print("took", time.time() - t1)
