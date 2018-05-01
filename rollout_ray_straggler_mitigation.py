@@ -27,14 +27,17 @@ def execute():
         result[i, :] = obs
     return result
 
-# ray.init(num_cpus=args.num_workers)
-# ray.init(redis_address="localhost:6379")
 ray.init(num_cpus=args.num_workers)
+# ray.init(redis_address="localhost:6379")
 
 ray.get([execute.remote()])
 
-time.sleep(1.0)
+time.sleep(2.0)
 
 t1 = time.time()
-ray.get([execute.remote() for i in range(3*args.num_workers)])
+# objects = [execute.remote() for i in range(3*args.num_workers)]
+objects = [execute.remote() for i in range(4*args.num_workers)]
+tasks, rest = ray.wait(objects, num_returns=3*args.num_workers)
+ray.get(tasks)
 print("took", args.num_workers * NUM_ROLLOUTS_PER_WORKER / (time.time() - t1))
+ray.get(objects)
